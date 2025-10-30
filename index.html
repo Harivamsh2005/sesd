@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Using Inter font as default */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for lists */
+        .list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .list-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 3px;
+        }
+        .list-container::-webkit-scrollbar-track {
+            background-color: #f1f5f9;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-blue-700 mb-6 text-center">Library Management System</h1>
+
+        <!-- Status Message Area -->
+        <div id="status-message" class="mb-4 p-4 rounded-lg text-white hidden"></div>
+
+        <!-- NEW: Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                <h3 class="text-sm font-medium text-gray-500">Total Books</h3>
+                <p id="stat-total-books" class="text-2xl font-bold text-blue-600">0</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                <h3 class="text-sm font-medium text-gray-500">Total Members</h3>
+                <p id="stat-total-members" class="text-2xl font-bold text-blue-600">0</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                <h3 class="text-sm font-medium text-gray-500">Books on Loan</h3>
+                <p id="stat-borrowed-books" class="text-2xl font-bold text-blue-600">0</p>
+            </div>
+        </div>
+
+        <!-- Main Grid Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- Left Column: Actions -->
+            <div class="md:col-span-1 space-y-6">
+
+                <!-- Add Book Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4 text-blue-600">Add New Book</h2>
+                    <form id="add-book-form" class="space-y-3">
+                        <div>
+                            <label for="book-id" class="block text-sm font-medium text-gray-700">Book ID</label>
+                            <input type="text" id="book-id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="book-title" class="block text-sm font-medium text-gray-700">Title</label>
+                            <input type="text" id="book-title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="book-author" class="block text-sm font-medium text-gray-700">Author</label>
+                            <input type="text" id="book-author" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition duration-200">Add Book</button>
+                    </form>
+                </div>
+
+                <!-- Register Member Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4 text-blue-600">Register Member</h2>
+                    <form id="register-member-form" class="space-y-3">
+                        <div>
+                            <label for="member-id" class="block text-sm font-medium text-gray-700">Member ID</label>
+                            <input type="text" id="member-id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="member-name" class="block text-sm font-medium text-gray-700">Name</label>
+                            <input type="text" id="member-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition duration-200">Register Member</button>
+                    </form>
+                </div>
+
+                <!-- Transactions Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4 text-blue-600">Transactions</h2>
+                    <!-- Issue Book Form -->
+                    <form id="issue-book-form" class="space-y-3 mb-4 border-b pb-4">
+                        <h3 class="font-medium text-gray-700">Issue Book</h3>
+                        <div>
+                            <label for="issue-book-id" class="block text-sm font-medium text-gray-700">Book ID</label>
+                            <input type="text" id="issue-book-id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="issue-member-id" class="block text-sm font-medium text-gray-700">Member ID</label>
+                            <input type="text" id="issue-member-id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition duration-200">Issue Book</button>
+                    </form>
+                    <!-- Reserve Book Form (NEW) -->
+                    <form id="reserve-book-form" class="space-y-3 mb-4 border-b pb-4">
+                        <h3 class="font-medium text-gray-700">Reserve Book (Waitlist)</h3>
+                        <div>
+                            <label for="reserve-book-id" class="block text-sm font-medium text-gray-700">Book ID</label>
+                            <input type="text" id="reserve-book-id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="reserve-member-id" class="block text-sm font-medium text-gray-700">Member ID</label>
+                            <input type="text" id="reserve-member-id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <button type="submit" class="w-full bg-yellow-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-200">Add to Waitlist</button>
+                    </form>
+                    <!-- Return Book Form -->
+                    <form id="return-book-form" class="space-y-3">
+                        <h3 class="font-medium text-gray-700">Return Book</h3>
+                        <div>
+                            <label for="return-book-id" class="block text-sm font-medium text-gray-700">Book ID</label>
+                            <input type="text" id="return-book-id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition duration-200">Return Book</button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Display -->
+            <div class="md:col-span-2 space-y-6">
+
+                <!-- Book List Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-blue-600">Available Books</h2>
+                        <div class="w-1/2">
+                            <input type="text" id="search-book" placeholder="Search by ID, Title, or Author..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div id="book-list-container" class="list-container max-h-96 overflow-y-auto space-y-2 pr-2">
+                        <!-- Book items will be injected here by JS -->
+                        <!-- REMOVED default <p> tag -->
+                    </div>
+                </div>
+
+                <!-- Member List Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4 text-blue-600">Library Members</h2>
+                    <div id="member-list-container" class="list-container max-h-64 overflow-y-auto space-y-2 pr-2">
+                        <!-- Member items will be injected here by JS -->
+                        <!-- REMOVED default <p> tag -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Member History Modal (Initially Hidden) -->
+    <div id="history-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 id="history-member-name" class="text-xl font-semibold text-blue-600">Member History</h3>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
+            </div>
+            <!-- Modal Body -->
+            <div id="history-list" class="p-6 overflow-y-auto space-y-3">
+                <!-- History items will be injected here -->
+                <p class="text-gray-500">No history found for this member.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- JavaScript equivalent of Python classes ---
+
+        class Book {
+            constructor(bookId, title, author) {
+                this.bookId = bookId;
+                this.title = title;
+                this.author = author;
+                this.isBorrowed = false;
+                this.dueDate = null; // Will be a Date object
+                this.borrowedBy = null; // Member ID
+                this.waitlist = []; // NEW: Array of member IDs
+            }
+
+            // Helper to format date string
+            get dueDateString() {
+                return this.dueDate ? this.dueDate.toISOString().split('T')[0] : 'N/A';
+            }
+        }
+
+        class Member {
+            constructor(memberId, name) {
+                this.memberId = memberId;
+                this.name = name;
+                this.borrowedBooks = []; // Will store Book objects
+                this.history = []; // NEW: To store transaction history
+            }
+        }
+        
+        // --- Redefining Classes with Full Waitlist Logic ---
+        // --- REMOVED Old 'Library' class that was causing conflicts ---
+
+        class LibraryV2 {
+             constructor(finePerDay = 1.0, borrowDurationDays = 14) {
+                this.books = new Map();
+                this.members = new Map();
+                this.finePerDay = finePerDay;
+                this.borrowDurationDays = borrowDurationDays;
+                this.MS_PER_DAY = 1000 * 60 * 60 * 24;
+            }
+
+            // NEW: Add history log helper
+            addHistory(memberId, action) {
+                const member = this.members.get(memberId);
+                if (member) {
+                    const logEntry = {
+                        date: new Date().toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }),
+                        action: action
+                    };
+                    member.history.unshift(logEntry); // Add to the front
+                    if (member.history.length > 20) { // Keep last 20 items
+                        member.history.pop(); // Remove the oldest
+                    }
+                }
+            }
+
+            addBook(bookId, title, author, silent = false) {
+                if (this.books.has(bookId)) {
+                    if (!silent) logMessage(`Error: Book with ID ${bookId} already exists.`, 'error');
+                    return false;
+                }
+                const book = new Book(bookId, title, author);
+                this.books.set(bookId, book);
+                if (!silent) logMessage(`Book added: ${title}`, 'success');
+                return true;
+            }
+
+            // NEW: Remove Book
+            removeBook(bookId) {
+                if (!this.books.has(bookId)) {
+                    logMessage(`Error: Book ID ${bookId} not found.`, 'error');
+                    return false;
+                }
+                const book = this.books.get(bookId);
+                if (book.isBorrowed) {
+                    logMessage(`Error: Cannot remove '${book.title}'. It is currently borrowed.`, 'error');
+                    return false;
+                }
+                // We should also check waitlist, but for simplicity, we'll just remove it.
+                // A more advanced system would notify waitlisted users.
+                this.books.delete(bookId);
+                logMessage(`Book '${book.title}' removed.`, 'success');
+                return true;
+            }
+
+            registerMember(memberId, name, silent = false) {
+                if (this.members.has(memberId)) {
+                    if (!silent) logMessage(`Error: Member with ID ${memberId} already exists.`, 'error');
+                    return false;
+                }
+                const member = new Member(memberId, name);
+                this.members.set(memberId, member);
+                if (!silent) logMessage(`Member registered: ${name}`, 'success');
+                return true;
+            }
+
+            // NEW: Remove Member
+            removeMember(memberId) {
+                if (!this.members.has(memberId)) {
+                    logMessage(`Error: Member ID ${memberId} not found.`, 'error');
+                    return false;
+                }
+                const member = this.members.get(memberId);
+                if (member.borrowedBooks.length > 0) {
+                    logMessage(`Error: Cannot remove ${member.name}. Member has ${member.borrowedBooks.length} borrowed book(s).`, 'error');
+                    return false;
+                }
+                // We should also remove member from any waitlists
+                this.books.forEach(book => {
+                    const index = book.waitlist.indexOf(memberId);
+                    if (index > -1) {
+                        book.waitlist.splice(index, 1);
+                    }
+                });
+                this.members.delete(memberId);
+                logMessage(`Member ${member.name} removed.`, 'success');
+                return true;
+            }
+
+            // NEW: Stat Getters
+            get totalBooks() {
+                return this.books.size;
+            }
+            get totalMembers() {
+                return this.members.size;
+            }
+            get totalBorrowedBooks() {
+                let count = 0;
+                for (const book of this.books.values()) {
+                    if (book.isBorrowed) count++;
+                }
+                return count;
+            }
+
+            findBook(searchTerm) {
+                const searchLower = searchTerm.toLowerCase();
+                const results = [];
+                for (const book of this.books.values()) {
+                    if (
+                        book.title.toLowerCase().includes(searchLower) ||
+                        book.author.toLowerCase().includes(searchLower) ||
+                        book.bookId.toLowerCase() === searchLower
+                    ) {
+                        results.push(book);
+                    }
+                }
+                return results;
+            }
+            
+            issueBook(bookId, memberId, silent = false) {
+                if (!this.books.has(bookId)) {
+                    if (!silent) logMessage(`Error: Book ID ${bookId} not found.`, 'error');
+                    return false;
+                }
+                if (!this.members.has(memberId)) {
+                    if (!silent) logMessage(`Error: Member ID ${memberId} not found.`, 'error');
+                    return false;
+                }
+
+                const book = this.books.get(bookId);
+                const member = this.members.get(memberId);
+
+                if (book.isBorrowed) {
+                    if (!silent) logMessage(`Error: Book '${book.title}' is already borrowed. Please reserve it.`, 'error');
+                    return false;
+                }
+
+                // NEW: Waitlist Check
+                if (book.waitlist.length > 0) {
+                    if (book.waitlist[0] === memberId) {
+                        // This person is first on the list.
+                        book.waitlist.shift(); // Remove them from waitlist
+                        if (!silent) logMessage(`Issuing book to ${member.name} from waitlist.`, 'info');
+                        this.addHistory(memberId, `Issued from waitlist: ${book.title}`); // Add history
+                    } else {
+                        // Book is on hold for someone else.
+                        const firstOnWaitlistId = book.waitlist[0];
+                        const firstMember = this.members.get(firstOnWaitlistId);
+                        const firstMemberName = firstMember ? firstMember.name : firstOnWaitlistId;
+                        if (!silent) logMessage(`Error: Book is on hold for ${firstMemberName}.`, 'error');
+                        return false;
+                    }
+                }
+
+                // --- Proceed with issuing ---
+                const issueDate = new Date();
+                book.isBorrowed = true;
+                book.borrowedBy = memberId;
+                const dueDate = new Date(issueDate.getTime() + this.borrowDurationDays * this.MS_PER_DAY);
+                book.dueDate = dueDate;
+                
+                member.borrowedBooks.push(book);
+
+                if (!silent) {
+                    logMessage(`Book '${book.title}' issued to ${member.name}. Due: ${book.dueDateString}`, 'success');
+                    if (book.waitlist.length === 0) { // Only log if not from waitlist (already logged)
+                       this.addHistory(memberId, `Issued: ${book.title}`);
+                    }
+                }
+                return true;
+            }
+            
+            reserveBook(bookId, memberId, silent = false) {
+                if (!this.books.has(bookId)) {
+                    if (!silent) logMessage(`Error: Book ID ${bookId} not found.`, 'error');
+                    return false;
+                }
+                if (!this.members.has(memberId)) {
+                    if (!silent) logMessage(`Error: Member ID ${memberId} not found.`, 'error');
+                    return false;
+                }
+
+                const book = this.books.get(bookId);
+                const member = this.members.get(memberId);
+                
+                if (!book.isBorrowed) {
+                    if (!silent) logMessage(`Book '${book.title}' is available. Please use 'Issue Book' directly.`, 'info');
+                    return false;
+                }
+                
+                if (book.borrowedBy === memberId) {
+                    if (!silent) logMessage(`You have already borrowed this book.`, 'info');
+                    return false;
+                }
+
+                if (book.waitlist.includes(memberId)) {
+                    if (!silent) logMessage(`Member ${member.name} is already on the waitlist for this book.`, 'info');
+                    return false;
+                }
+
+                book.waitlist.push(memberId);
+                if (!silent) {
+                    logMessage(`Member ${member.name} added to waitlist for '${book.title}'. Position: ${book.waitlist.length}`, 'success');
+                    this.addHistory(memberId, `Reserved: ${book.title}`);
+                }
+                return true;
+            }
+
+            returnBook(bookId) {
+                if (!this.books.has(bookId)) {
+                    logMessage(`Error: Book ID ${bookId} not found.`, 'error');
+                    return false;
+                }
+                const book = this.books.get(bookId);
+                if (!book.isBorrowed) {
+                    logMessage(`Error: Book '${book.title}' is not currently borrowed.`, 'error');
+                    return false;
+                }
+
+                const memberId = book.borrowedBy;
+                if (!this.members.has(memberId)) {
+                    logMessage(`Error: Member ${memberId} who borrowed book not found.`, 'error');
+                    return false;
+                }
+
+                const member = this.members.get(memberId);
+                const returnDate = new Date();
+                const fine = this.calculateFine(book, returnDate);
+
+                // Update book & member
+                book.isBorrowed = false;
+                book.dueDate = null;
+                book.borrowedBy = null;
+                const bookIndex = member.borrowedBooks.findIndex(b => b.bookId === bookId);
+                if (bookIndex > -1) {
+                    member.borrowedBooks.splice(bookIndex, 1);
+                }
+
+                // --- Logging and Waitlist Notification ---
+                let message = "";
+                if (fine > 0) {
+                    message = `Book '${book.title}' returned by ${member.name}. Fine: $${fine.toFixed(2)}.`;
+                    this.addHistory(memberId, `Returned: ${book.title} (Fine: $${fine.toFixed(2)})`);
+                } else {
+                    message = `Book '${book.title}' returned by ${member.name}. No fine.`;
+                    this.addHistory(memberId, `Returned: ${book.title} (No Fine)`);
+                }
+                
+                if (book.waitlist.length > 0) {
+                    const nextMemberId = book.waitlist[0];
+                    const nextMember = this.members.get(nextMemberId);
+                    const nextMemberName = nextMember ? nextMember.name : nextMemberId;
+                    message += ` Book is now on hold for ${nextMemberName} (waitlist position 1).`;
+                }
+                
+                logMessage(message, fine > 0 ? 'warning' : 'success');
+                return fine;
+            }
+
+
+            calculateFine(book, returnDate) {
+                if (!book.isBorrowed || !book.dueDate) {
+                    return 0;
+                }
+                const utcReturn = Date.UTC(returnDate.getFullYear(), returnDate.getMonth(), returnDate.getDate());
+                const utcDue = Date.UTC(book.dueDate.getFullYear(), book.dueDate.getMonth(), book.dueDate.getDate());
+                
+                const dayDifference = Math.floor((utcReturn - utcDue) / this.MS_PER_DAY);
+
+                if (dayDifference > 0) {
+                    return dayDifference * this.finePerDay;
+                }
+                return 0;
+            }
+        }
+
+
+        // --- DOM Manipulation and Event Listeners ---
+
+        // Create a single library instance
+        const library = new LibraryV2(); // Use the new class
+
+        
+        // --- Get DOM elements (MOVED UP) ---
+        const statusMessageEl = document.getElementById('status-message');
+        
+        const addBookForm = document.getElementById('add-book-form');
+        const bookIdEl = document.getElementById('book-id');
+        const bookTitleEl = document.getElementById('book-title');
+        const bookAuthorEl = document.getElementById('book-author');
+
+        const registerMemberForm = document.getElementById('register-member-form');
+        const memberIdEl = document.getElementById('member-id');
+        const memberNameEl = document.getElementById('member-name');
+        
+        const issueBookForm = document.getElementById('issue-book-form');
+        const issueBookIdEl = document.getElementById('issue-book-id');
+        const issueMemberIdEl = document.getElementById('issue-member-id');
+        
+        // NEW: Reserve Form elements
+        const reserveBookForm = document.getElementById('reserve-book-form');
+        const reserveBookIdEl = document.getElementById('reserve-book-id');
+        const reserveMemberIdEl = document.getElementById('reserve-member-id');
+
+        const returnBookForm = document.getElementById('return-book-form');
+        const returnBookIdEl = document.getElementById('return-book-id');
+
+        const bookListContainer = document.getElementById('book-list-container');
+        const memberListContainer = document.getElementById('member-list-container');
+        
+        const searchBookEl = document.getElementById('search-book');
+
+        // NEW: Modal elements
+        const historyModal = document.getElementById('history-modal');
+        const historyMemberName = document.getElementById('history-member-name');
+        const historyList = document.getElementById('history-list');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+
+        // NEW: Stat elements
+        const statTotalBooksEl = document.getElementById('stat-total-books');
+        const statTotalMembersEl = document.getElementById('stat-total-members');
+        const statBorrowedBooksEl = document.getElementById('stat-borrowed-books');
+
+
+        // --- Helper Functions (MOVED UP) ---
+
+        /** Displays a status message to the user */
+        function logMessage(message, type = 'info') {
+            statusMessageEl.textContent = message;
+            statusMessageEl.classList.remove('hidden', 'bg-green-500', 'bg-red-500', 'bg-yellow-500', 'bg-blue-500');
+
+            if (type === 'success') {
+                statusMessageEl.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                statusMessageEl.classList.add('bg-red-500');
+            } else if (type === 'warning') {
+                statusMessageEl.classList.add('bg-yellow-500');
+            } else {
+                statusMessageEl.classList.add('bg-blue-500');
+            }
+
+            statusMessageEl.classList.remove('hidden');
+
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                statusMessageEl.classList.add('hidden');
+            }, 5000);
+        }
+
+        // NEW: Function to render all stats
+        function renderStats() {
+            statTotalBooksEl.textContent = library.totalBooks;
+            statTotalMembersEl.textContent = library.totalMembers;
+            statBorrowedBooksEl.textContent = library.totalBorrowedBooks;
+        }
+
+        // NEW: Helper to render everything
+        function renderAll() {
+            renderBookList();
+            renderMemberList();
+            renderStats();
+        }
+
+        /** Refreshes the book list UI */
+        function renderBookList(bookArray = null) {
+            bookListContainer.innerHTML = ''; // Clear existing list
+            
+            const booksToDisplay = bookArray || Array.from(library.books.values());
+
+            if (booksToDisplay.length === 0) {
+                // MODIFIED: Add message directly
+                bookListContainer.innerHTML = `<p class="text-gray-500">${bookArray ? 'No books found.' : 'No books in the library.'}</p>`;
+                return;
+            }
+            
+            booksToDisplay.sort((a, b) => a.title.localeCompare(b.title)); // Sort by title
+
+            booksToDisplay.forEach(book => {
+                const statusColor = book.isBorrowed ? 'text-red-500' : 'text-green-500';
+                const statusText = book.isBorrowed ? `Borrowed by ${book.borrowedBy} (Due: ${book.dueDateString})` : 'Available';
+                
+                // NEW: Waitlist info
+                let waitlistText = '';
+                if (book.waitlist.length > 0) {
+                    waitlistText = `<p class="text-sm text-yellow-600 font-medium">Waitlist: ${book.waitlist.length} person(s)</p>`;
+                }
+
+                const bookEl = document.createElement('div');
+                bookEl.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200';
+                // NEW: Added Remove button
+                bookEl.innerHTML = `
+                    <p class="font-semibold">${book.title} <span class="text-sm font-normal text-gray-600">by ${book.author}</span></p>
+                    <div class="flex justify-between items-center mt-1">
+                        <p class="text-sm text-gray-500">ID: ${book.bookId}</p>
+                        <button class="remove-book-btn text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded hover:bg-red-200" data-book-id="${book.bookId}">Remove</button>
+                    </div>
+                    <p class="text-sm ${statusColor} font-medium mt-1">${statusText}</p>
+                    ${waitlistText}
+                `;
+                bookListContainer.appendChild(bookEl);
+            });
+        }
+
+        /** Refreshes the member list UI */
+        function renderMemberList() {
+            memberListContainer.innerHTML = ''; // Clear existing list
+
+            // MODIFIED: Logic updated to be like renderBookList
+            if (library.members.size === 0) {
+                memberListContainer.innerHTML = '<p class="text-gray-500">No members registered.</p>';
+                return;
+            }
+            
+            const membersArray = Array.from(library.members.values());
+            membersArray.sort((a, b) => a.name.localeCompare(b.name)); // Sort by name
+
+            membersArray.forEach(member => {
+                const memberEl = document.createElement('div');
+                // NEW: Make card clickable and add data attribute
+                memberEl.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200'; // Removed cursor-pointer, will apply to history btn
+                memberEl.dataset.memberId = member.memberId; // Keep for history modal
+                
+                // NEW: Added Remove button and specific class for history
+                memberEl.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-semibold">${member.name}</p>
+                            <p class="text-sm text-gray-500">ID: ${member.memberId}</p>
+                        </div>
+                        <button class="remove-member-btn text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded hover:bg-red-200" data-member-id="${member.memberId}">Remove</button>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">Books Borrowed: ${member.borrowedBooks.length}</p>
+                    <p class="text-sm text-blue-600 font-medium mt-1 cursor-pointer view-history-btn">View History (${member.history.length} items)</p>
+                `;
+                memberListContainer.appendChild(memberEl);
+            });
+        }
+        
+        // NEW: Function to show member history modal
+        function showMemberHistory(memberId) {
+            const member = library.members.get(memberId);
+            if (!member) return;
+
+            // Set modal title
+            historyMemberName.textContent = `History for ${member.name}`;
+            
+            // Clear old history
+            historyList.innerHTML = '';
+
+            // Populate new history
+            if (member.history.length === 0) {
+                historyList.innerHTML = '<p class="text-gray-500">No history found for this member.</p>';
+            } else {
+                member.history.forEach(log => {
+                    const logEl = document.createElement('div');
+                    logEl.className = 'p-3 border-b border-gray-100';
+                    logEl.innerHTML = `
+                        <p class="font-medium text-gray-800">${log.action}</p>
+                        <p class="text-sm text-gray-500">${log.date}</p>
+                    `;
+                    historyList.appendChild(logEl);
+                });
+            }
+            
+            // Show the modal
+            historyModal.classList.remove('hidden');
+        }
+
+
+        // --- Load Default Data (MOVED DOWN) ---
+        (function loadDefaultData() {
+            try { 
+                // Add Books
+                library.addBook('B001', 'Python Crash Course', 'Eric Matthes', true);
+                library.addBook('B002', 'Learning Python', 'Mark Lutz', true);
+                library.addBook('B003', 'Clean Code', 'Robert C. Martin', true);
+                library.addBook('B004', 'The Pragmatic Programmer', 'Andrew Hunt & David Thomas', true);
+                library.addBook('B005', 'Introduction to Algorithms', 'Thomas H. Cormen', true);
+                library.addBook('B006', 'Data Structures and Algorithms Made Easy', 'Narasimha Karumanchi', true);
+                library.addBook('B007', 'Artificial Intelligence: A Modern Approach', 'Stuart Russell & Peter Norvig', true);
+                library.addBook('B008', 'Computer Networks', 'Andrew S. Tanenbaum', true);
+                library.addBook('B009', 'Operating System Concepts', 'Abraham Silberschatz', true);
+                library.addBook('B010', 'Web Development with Flask', 'Miguel Grinberg', true);
+                
+                // --- NEW BOOKS ADDED ---
+                // Cybersecurity
+                library.addBook('B011', 'The Web Application Hacker’s Handbook', 'Dafydd Stuttard & Marcus Pinto', true);
+                library.addBook('B012', 'Hacking: The Art of Exploitation', 'Jon Erickson', true);
+                library.addBook('B013', 'Cybersecurity Essentials', 'Charles J. Brooks', true);
+                library.addBook('B014', 'Network Security Bible', 'Eric Cole', true);
+                library.addBook('B015', 'Penetration Testing: A Hands-On Introduction', 'Georgia Weidman', true);
+                library.addBook('B016', 'Practical Malware Analysis', 'Michael Sikorski & Andrew Honig', true);
+                library.addBook('B017', 'Applied Cryptography', 'Bruce Schneier', true);
+                library.addBook('B018', 'Social Engineering: The Science of Human Hacking', 'Christopher Hadnagy', true);
+                library.addBook('B019', 'Blue Team Handbook', 'Don Murdoch', true);
+                library.addBook('B020', 'Metasploit: The Penetration Tester’s Guide', 'David Kennedy', true);
+                
+                // Science
+                library.addBook('B021', 'A Brief History of Time', 'Stephen Hawking', true);
+                library.addBook('B022', 'The Selfish Gene', 'Richard Dawkins', true);
+                library.addBook('B023', 'Cosmos', 'Carl Sagan', true);
+                library.addBook('B024', 'The Gene: An Intimate History', 'Siddhartha Mukherjee', true);
+                library.addBook('B025', 'The Immortal Life of Henrietta Lacks', 'Rebecca Skloot', true);
+                library.addBook('B026', 'The Elegant Universe', 'Brian Greene', true);
+                library.addBook('B027', 'The Origin of Species', 'Charles Darwin', true);
+                library.addBook('B028', 'The Grand Design', 'Stephen Hawking & Leonard Mlodinow', true);
+                library.addBook('B029', 'Sapiens: A Brief History of Humankind', 'Yuval Noah Harari', true);
+                library.addBook('B030', 'Astrophysics for People in a Hurry', 'Neil deGrasse Tyson', true);
+                
+                // Fiction
+                library.addBook('B031', '1984', 'George Orwell', true);
+                library.addBook('B032', 'The Alchemist', 'Paulo Coelho', true);
+                library.addBook('B033', 'To Kill a Mockingbird', 'Harper Lee', true);
+                library.addBook('B034', 'The Great Gatsby', 'F. Scott Fitzgerald', true);
+                library.addBook('B035', 'Harry Potter and the Sorcerer’s Stone', 'J.K. Rowling', true);
+                library.addBook('B036', 'The Hobbit', 'J.R.R. Tolkien', true);
+                library.addBook('B037', 'Pride and Prejudice', 'Jane Austen', true);
+                library.addBook('B038', 'The Catcher in the Rye', 'J.D. Salinger', true);
+                library.addBook('B039', 'The Kite Runner', 'Khaled Hosseini', true);
+                library.addBook('B040', 'The Fault in Our Stars', 'John Green', true);
+                
+                // Self-Help
+                library.addBook('B041', 'Atomic Habits', 'James Clear', true);
+                library.addBook('B042', 'The 7 Habits of Highly Effective People', 'Stephen R. Covey', true);
+                library.addBook('B043', 'Think and Grow Rich', 'Napoleon Hill', true);
+                library.addBook('B044', 'Deep Work', 'Cal Newport', true);
+                library.addBook('B045', 'The Power of Now', 'Eckhart Tolle', true);
+                library.addBook('B046', 'Can’t Hurt Me', 'David Goggins', true);
+                library.addBook('B047', 'Start With Why', 'Simon Sinek', true);
+                library.addBook('B048', 'The Subtle Art of Not Giving a F*ck', 'Mark Manson', true);
+                library.addBook('B049', 'Mindset: The New Psychology of Success', 'Carol S. Dweck', true);
+                library.addBook('B050', 'The Magic of Thinking Big', 'David J. Schwartz', true);
+                
+                // Add Members
+                library.registerMember('M101', 'Alice Smith', true);
+                library.registerMember('M102', 'Bob Johnson', true);
+                library.registerMember('M103', 'Chandra Rao', true);
+                library.registerMember('M104', 'Deepa Patel', true);
+                
+                // Pre-borrow a book for demo
+                library.issueBook('B003', 'M101', true);
+                // Pre-reserve a book
+                library.reserveBook('B003', 'M102', true);
+                
+                // Add some more history for demo
+                library.issueBook('B021', 'M101', true);
+                library.returnBook('B021');
+                
+                console.log('Default data loaded successfully.'); 
+            } catch (e) {
+                console.error('Error loading default data:', e); 
+                logMessage('FATAL: Error loading default data. Check console.', 'error');
+            }
+        })();
+        // --- End of Default Data ---
+
+
+        // --- Event Handlers (MOVED DOWN) ---
+
+        addBookForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = bookIdEl.value.trim();
+            const title = bookTitleEl.value.trim();
+            const author = bookAuthorEl.value.trim();
+            
+            if (id && title && author) {
+                if (library.addBook(id, title, author)) {
+                    renderAll(); // Use new render function
+                    addBookForm.reset();
+                }
+            }
+        });
+
+        registerMemberForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = memberIdEl.value.trim();
+            const name = memberNameEl.value.trim();
+            
+            if (id && name) {
+                if (library.registerMember(id, name)) {
+                    renderAll(); // Use new render function
+                    registerMemberForm.reset();
+                }
+            }
+        });
+
+        issueBookForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const bookId = issueBookIdEl.value.trim();
+            const memberId = issueMemberIdEl.value.trim();
+            
+            if (bookId && memberId) {
+                if(library.issueBook(bookId, memberId)) {
+                    renderAll(); // Use new render function
+                    issueBookForm.reset();
+                }
+            }
+        });
+        
+        // NEW: Reserve Book Handler
+        reserveBookForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const bookId = reserveBookIdEl.value.trim();
+            const memberId = reserveMemberIdEl.value.trim();
+            
+            if (bookId && memberId) {
+                if(library.reserveBook(bookId, memberId)) {
+                    renderAll(); // Use new render function
+                    reserveBookForm.reset();
+                }
+            }
+        });
+
+        returnBookForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // --- STRAY TEXT REMOVED FROM HERE ---
+            const bookId = returnBookIdEl.value.trim();
+            
+            if (bookId) {
+                library.returnBook(bookId); // No need for 'if' as it logs its own status
+                renderAll(); // Use new render function
+                returnBookForm.reset(); // <-- CORRECTED FROM .V()
+            }
+        });
+        
+        searchBookEl.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.trim(); 
+            if (searchTerm === '') {
+                renderAll(); // Use new render function
+            } else {
+                const results = library.findBook(searchTerm);
+                renderBookList(results); // Keep this as just renderBookList
+                // We don't want to reset members or stats when searching
+            }
+        });
+        
+        // --- NEW: Modal Event Listeners ---
+        
+        // Close modal button
+        closeModalBtn.addEventListener('click', () => {
+            historyModal.classList.add('hidden');
+        });
+
+        // Close modal when clicking background
+        historyModal.addEventListener('click', (e) => {
+            if (e.target === historyModal) {
+                historyModal.classList.add('hidden');
+            }
+        });
+
+        // NEW: Event delegation for book list
+        bookListContainer.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.remove-book-btn');
+            if (removeBtn) {
+                const bookId = removeBtn.dataset.bookId;
+                // Add a confirmation here in a real app
+                if (library.removeBook(bookId)) {
+                    renderAll();
+                }
+            }
+        });
+
+        // MODIFIED: Event delegation for member list (handles both remove and history)
+        memberListContainer.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.remove-member-btn');
+            if (removeBtn) {
+                const memberId = removeBtn.dataset.memberId;
+                // Add a confirmation here in a real app
+                if (library.removeMember(memberId)) {
+                    renderAll();
+                }
+                return; // Stop processing to avoid opening history
+            }
+
+            const historyBtn = e.target.closest('.view-history-btn');
+            const memberCard = e.target.closest('[data-member-id]');
+            if (historyBtn && memberCard) {
+                const memberId = memberCard.dataset.memberId;
+                showMemberHistory(memberId);
+            }
+        });
+
+
+        // Initial render
+        console.log('Starting initial render...'); 
+        // MODIFIED: Use new render function
+        renderAll();
+        console.log('Initial render complete.'); 
+
+    </script>
+</body>
+</html>
+
